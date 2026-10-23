@@ -1,0 +1,34 @@
+{
+  "question": "Can a tuned LightGBM LambdaRank reranker on simple graph and dialogue-history features beat an embedding+MLP scorer at retrieving the answer entity per turn of a simulated conversation over a public KG?",
+  "method": "Simulated 3000 four-turn conversations over FB15k-237 (follow-up vs topic-switch focus); candidates are 1-hop neighbours of all mentioned entities; conversation-level 75/25 split; hyper-parameters chosen by 3-fold grouped CV on train; both models evaluated once on test over all candidates, seeds 42-44.",
+  "dataset": {
+    "name": "FB15k-237 train triples, simulated conversational entity retrieval",
+    "source_url": "https://raw.githubusercontent.com/villmow/datasets_knowledge_embedding/master/FB15k-237/train.txt",
+    "n_rows": 12000,
+    "n_train": 9000,
+    "n_test": 3000,
+    "same_as_paper": false,
+    "baseline_is_papers_method": false
+  },
+  "metric_name": "MRR",
+  "higher_is_better": true,
+  "baseline": "Truncated-SVD entity/relation embeddings of the graph feeding an sklearn MLPClassifier that scores (history, relation, candidate) features.",
+  "improved": "LightGBM LambdaRank reranker on graph/history features: relation match, recency of the matching source entity, ambiguity, degree, already-mentioned, relation-conditioned in-degree.",
+  "metrics": {
+    "baseline_score": 0.5109944526538962,
+    "improved_score": 0.9837902116402116,
+    "improvement": 0.47279575898631543,
+    "baseline_score_std": 0.014475756612704657,
+    "improved_score_std": 0.00033416143881806893,
+    "baseline_hits1": 0.35400000000000004,
+    "improved_hits1": 0.9708888888888888,
+    "baseline_hits1_std": 0.014455551285335419,
+    "improved_hits1_std": 0.0006285393610547444,
+    "baseline_recall10": 0.855111111111111,
+    "improved_recall10": 0.9993333333333333,
+    "baseline_recall10_std": 0.014458967058371143,
+    "improved_recall10_std": 0.0,
+    "mean_candidates_per_query": 51.3595
+  },
+  "notes": "n_rows/n_train/n_test count conversation turns (queries); graph has 272115 triples. Simulated stand-in, not the paper's CER-KG benchmark. Entities limited to degree <= 60; each asked (focus, relation) has a unique answer and the answer is never already mentioned, which makes 'already mentioned' an artefact-prone feature. Training/CV use the positive plus 20 sampled negatives per query (CV validation also on sampled candidates); test uses all candidates with pessimistic tie handling. The baseline is not given the focus entity and sees the graph only via embeddings; the tuning grids are small (2 configs each). Chosen params: {\"baseline\": \"{'h': (64, 32), 'alpha': 0.001}\", \"improved\": \"{'n': 100, 'lr': 0.1, 'leaves': 15}\"}. Data is simulated, so results do not transfer directly to real conversations."
+}
